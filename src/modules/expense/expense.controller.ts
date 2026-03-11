@@ -2,9 +2,18 @@ import { Request, Response } from "express";
 import catchAsync from "../../core/catchAsync";
 import { sendResponse } from "../../core/apiResponse";
 import { expenseService } from "./expense.service";
+import { uploadService } from "../upload/upload.service";
 
 const create = catchAsync(async (req: Request, res: Response) => {
-  const result = await expenseService.create(req.body, req.user!.userId);
+  let receiptId: string | undefined;
+  if (req.file) {
+    const receipt = await uploadService.saveFile(req.file, req.user!.userId);
+    receiptId = (receipt._id as any).toString();
+  }
+  const result = await expenseService.create(
+    { ...req.body, receiptId },
+    req.user!.userId,
+  );
   sendResponse(res, {
     statusCode: 201,
     message: "Expense created successfully",
@@ -30,9 +39,14 @@ const getById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
+  let receiptId: string | undefined;
+  if (req.file) {
+    const receipt = await uploadService.saveFile(req.file, req.user!.userId);
+    receiptId = (receipt._id as any).toString();
+  }
   const result = await expenseService.update(
     req.params.id as string,
-    req.body,
+    { ...req.body, ...(receiptId && { receiptId }) },
     req.user!.userId,
   );
   sendResponse(res, { message: "Expense updated successfully", data: result });

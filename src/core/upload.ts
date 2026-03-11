@@ -1,29 +1,43 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import crypto from "crypto";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import config from "../config";
 import { BadRequestError } from "../core/errors";
 
-// Ensure upload directory exists
-const uploadDir = path.join(process.cwd(), config.upload.uploadDir);
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Disk storage configuration
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = crypto.randomBytes(16).toString("hex");
-    const ext = path.extname(file.originalname);
-    cb(null, `${uniqueSuffix}${ext}`);
-  },
+// Configure Cloudinary SDK
+cloudinary.config({
+  cloud_name: config.cloudinary.cloudName,
+  api_key: config.cloudinary.apiKey,
+  api_secret: config.cloudinary.apiSecret,
 });
 
-// File filter
+export { cloudinary };
+
+// Derive Cloudinary resource_type from mime type
+const getResourceType = (
+  mimetype: string,
+): "image" | "video" | "raw" | "auto" => {
+  if (mimetype.startsWith("image/")) return "image";
+  if (mimetype.startsWith("video/")) return "video";
+  return "raw";
+};
+
+// Cloudinary storage — one multer instance with folder routing via params
+const buildCloudinaryStorage = (folder: string) =>
+  new CloudinaryStorage({
+    cloudinary,
+    params: (_req: any, file: Express.Multer.File) => ({
+      folder: `ims/${folder}`,
+      resource_type: getResourceType(file.mimetype),
+      allowed_formats: ["jpg", "jpeg", "png", "webp", "pdf"],
+      transformation:
+        file.mimetype.startsWith("image/")
+          ? [{ quality: "auto", fetch_format: "auto" }]
+          : undefined,
+    }),
+  });
+
+// File filter — rejects disallowed mime types before hitting network
 const fileFilter = (
   _req: any,
   file: Express.Multer.File,
@@ -40,37 +54,21 @@ const fileFilter = (
   }
 };
 
-export const upload = multer({
-  storage,
+const multerOptions = (folder: string) => ({
+  storage: buildCloudinaryStorage(folder),
   fileFilter,
-  limits: {
-    fileSize: config.upload.maxFileSize,
-  },
+  limits: { fileSize: config.upload.maxFileSize },
 });
 
-// Memory storage (for cloud uploads)
-const memoryStorage = multer.memoryStorage();
+// General-purpose uploader (stored in ims/general)
+export const upload = multer(multerOptions("general"));
 
-export const uploadToMemory = multer({
-  storage: memoryStorage,
-  fileFilter,
-  limits: {
-    fileSize: config.upload.maxFileSize,
-  },
-});
+// Folder-specific uploaders
+export const uploadReceipt = multer(multerOptions("receipts"));
+export const uploadProductImage = multer(multerOptions("products"));
+export const uploadAvatar = multer(multerOptions("avatars"));
 
-// Helper to delete a file
-export const deleteFile = (filePath: string): void => {
-  const fullPath = path.isAbsolute(filePath)
-    ? filePath
-    : path.join(uploadDir, filePath);
-
-  if (fs.existsSync(fullPath)) {
-    fs.unlinkSync(fullPath);
-  }
-};
-
-// Helper to get file URL
-export const getFileUrl = (filename: string): string => {
-  return `/${config.upload.uploadDir}/${filename}`;
+// Delete a file from Cloudinary by its public_id
+export const deleteCloudinaryFile = async (publicId: string): Promise<void> => {
+  await cloudinary.uploader.destroy(publicId);
 };

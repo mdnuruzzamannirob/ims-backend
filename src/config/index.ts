@@ -29,7 +29,6 @@ const config = {
       process.env.UPLOAD_MAX_FILE_SIZE || String(5 * 1024 * 1024),
       10,
     ), // 5MB
-    uploadDir: process.env.UPLOAD_DIR || "uploads",
     allowedMimeTypes: (
       process.env.UPLOAD_ALLOWED_TYPES ||
       "image/jpeg,image/png,image/webp,application/pdf"

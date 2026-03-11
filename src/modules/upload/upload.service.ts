@@ -1,19 +1,26 @@
 import { FileUpload } from "./upload.model";
 import { NotFoundError } from "../../core/errors";
-import { deleteFile, getFileUrl } from "../../core/upload";
+import { deleteCloudinaryFile } from "../../core/upload";
+
+// multer-storage-cloudinary attaches extra fields to req.file
+interface CloudinaryFile extends Express.Multer.File {
+  path: string;       // secure_url
+  filename: string;   // public_id
+}
 
 const saveFile = async (
   file: Express.Multer.File,
   userId: string,
   relatedTo?: { model: string; id: string },
 ) => {
+  const cf = file as CloudinaryFile;
   const fileRecord = await FileUpload.create({
-    originalName: file.originalname,
-    fileName: file.filename,
-    mimeType: file.mimetype,
-    size: file.size,
-    path: file.path,
-    url: getFileUrl(file.filename),
+    originalName: cf.originalname,
+    fileName: cf.filename,         // Cloudinary public_id
+    mimeType: cf.mimetype,
+    size: cf.size,
+    secureUrl: cf.path,            // Cloudinary secure_url
+    url: cf.path,
     uploadedBy: userId,
     relatedTo,
   });
@@ -48,7 +55,8 @@ const remove = async (id: string) => {
   const file = await FileUpload.findById(id);
   if (!file) throw new NotFoundError("File");
 
-  deleteFile(file.fileName);
+  // Delete from Cloudinary
+  await deleteCloudinaryFile(file.fileName);
   await FileUpload.findByIdAndDelete(id);
   return file;
 };

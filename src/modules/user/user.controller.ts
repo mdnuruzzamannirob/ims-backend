@@ -62,7 +62,11 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.updateProfile(req.user!.userId, req.body);
+  const body: any = { ...req.body };
+  if (req.file) {
+    body.avatar = (req.file as any).path; // Cloudinary secure_url
+  }
+  const user = await userService.updateProfile(req.user!.userId, body);
   sendResponse(res, { message: "Profile updated", data: user });
 });
 

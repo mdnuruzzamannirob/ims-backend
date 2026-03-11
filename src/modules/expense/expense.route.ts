@@ -7,6 +7,7 @@ import {
   updateExpenseSchema,
   rejectExpenseSchema,
 } from "./expense.validation";
+import { uploadReceipt } from "../../core/upload";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use(auth());
 router.post(
   "/",
   requirePermission("expense", "create"),
+  uploadReceipt.single("receipt"),
   validate(createExpenseSchema),
   expenseController.create,
 );
@@ -36,6 +38,7 @@ router.get(
 router.patch(
   "/:id",
   requirePermission("expense", "update"),
+  uploadReceipt.single("receipt"),
   validate(updateExpenseSchema),
   expenseController.update,
 );

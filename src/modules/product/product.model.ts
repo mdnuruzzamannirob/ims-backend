@@ -11,6 +11,8 @@ export interface IProduct extends Document {
   unit: string;
   reorderLevel: number;
   isActive: boolean;
+  imageUrl?: string;
+  imagePublicId?: string;
 }
 
 const productSchema = new Schema<IProduct>(
@@ -65,6 +67,8 @@ const productSchema = new Schema<IProduct>(
       type: Boolean,
       default: true,
     },
+    imageUrl: { type: String },
+    imagePublicId: { type: String },
   },
   {
     timestamps: true,

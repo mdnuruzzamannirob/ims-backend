@@ -13,6 +13,7 @@ import {
   updateUserSchema,
 } from "./user.validation";
 import auth, { requirePermission } from "../../middlewares/auth";
+import { uploadAvatar } from "../../core/upload";
 
 const router = Router();
 
@@ -45,6 +46,7 @@ router.get("/profile", auth(), userController.getProfile);
 router.patch(
   "/profile",
   auth(),
+  uploadAvatar.single("avatar"),
   validate(updateProfileSchema),
   userController.updateProfile,
 );

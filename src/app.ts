@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import path from "path";
 import compression from "compression";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
@@ -61,9 +60,6 @@ app.use(mongoSanitize());
 
 // HTTP Parameter Pollution protection
 app.use(hpp());
-
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // HTTP request logging
 app.use(morgan("dev"));

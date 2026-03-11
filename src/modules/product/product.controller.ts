@@ -3,8 +3,17 @@ import catchAsync from "../../core/catchAsync";
 import { sendResponse } from "../../core/apiResponse";
 import { productService } from "./product.service";
 
+// multer-storage-cloudinary puts secure_url in file.path
+const extractImageFields = (file?: Express.Multer.File) =>
+  file
+    ? { imageUrl: (file as any).path, imagePublicId: file.filename }
+    : {};
+
 const create = catchAsync(async (req: Request, res: Response) => {
-  const product = await productService.create(req.body);
+  const product = await productService.create({
+    ...req.body,
+    ...extractImageFields(req.file),
+  });
   sendResponse(res, {
     statusCode: 201,
     message: "Product created",
@@ -23,10 +32,10 @@ const getById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
-  const product = await productService.update(
-    req.params.id as string,
-    req.body,
-  );
+  const product = await productService.update(req.params.id as string, {
+    ...req.body,
+    ...extractImageFields(req.file),
+  });
   sendResponse(res, { message: "Product updated", data: product });
 });
 
