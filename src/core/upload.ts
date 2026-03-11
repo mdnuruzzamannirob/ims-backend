@@ -30,10 +30,9 @@ const buildCloudinaryStorage = (folder: string) =>
       folder: `ims/${folder}`,
       resource_type: getResourceType(file.mimetype),
       allowed_formats: ["jpg", "jpeg", "png", "webp", "pdf"],
-      transformation:
-        file.mimetype.startsWith("image/")
-          ? [{ quality: "auto", fetch_format: "auto" }]
-          : undefined,
+      transformation: file.mimetype.startsWith("image/")
+        ? [{ quality: "auto", fetch_format: "auto" }]
+        : undefined,
     }),
   });
 

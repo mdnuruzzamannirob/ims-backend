@@ -4,8 +4,8 @@ import { deleteCloudinaryFile } from "../../core/upload";
 
 // multer-storage-cloudinary attaches extra fields to req.file
 interface CloudinaryFile extends Express.Multer.File {
-  path: string;       // secure_url
-  filename: string;   // public_id
+  path: string; // secure_url
+  filename: string; // public_id
 }
 
 const saveFile = async (
@@ -16,10 +16,10 @@ const saveFile = async (
   const cf = file as CloudinaryFile;
   const fileRecord = await FileUpload.create({
     originalName: cf.originalname,
-    fileName: cf.filename,         // Cloudinary public_id
+    fileName: cf.filename, // Cloudinary public_id
     mimeType: cf.mimetype,
     size: cf.size,
-    secureUrl: cf.path,            // Cloudinary secure_url
+    secureUrl: cf.path, // Cloudinary secure_url
     url: cf.path,
     uploadedBy: userId,
     relatedTo,

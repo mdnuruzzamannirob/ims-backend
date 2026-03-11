@@ -2,11 +2,11 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export interface IFileUpload extends Document {
   originalName: string;
-  fileName: string;    // Cloudinary public_id
+  fileName: string; // Cloudinary public_id
   mimeType: string;
   size: number;
-  secureUrl: string;   // Cloudinary https URL
-  url: string;         // alias kept for backwards compat
+  secureUrl: string; // Cloudinary https URL
+  url: string; // alias kept for backwards compat
   format?: string;
   width?: number;
   height?: number;
@@ -20,7 +20,7 @@ export interface IFileUpload extends Document {
 const fileUploadSchema = new Schema<IFileUpload>(
   {
     originalName: { type: String, required: true },
-    fileName: { type: String, required: true },   // Cloudinary public_id
+    fileName: { type: String, required: true }, // Cloudinary public_id
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },
     secureUrl: { type: String, required: true },

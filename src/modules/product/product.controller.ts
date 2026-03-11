@@ -5,9 +5,7 @@ import { productService } from "./product.service";
 
 // multer-storage-cloudinary puts secure_url in file.path
 const extractImageFields = (file?: Express.Multer.File) =>
-  file
-    ? { imageUrl: (file as any).path, imagePublicId: file.filename }
-    : {};
+  file ? { imageUrl: (file as any).path, imagePublicId: file.filename } : {};
 
 const create = catchAsync(async (req: Request, res: Response) => {
   const product = await productService.create({
