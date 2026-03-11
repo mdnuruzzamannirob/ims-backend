@@ -2,9 +2,13 @@ import app from "./app";
 import config from "./config";
 import connectDB from "./core/database";
 import logger from "./core/logger";
+import initJobs from "./jobs";
 
 const startServer = async () => {
   await connectDB();
+
+  // Initialize background cron jobs
+  initJobs();
 
   app.listen(config.port, () => {
     logger.info(`Server running on port ${config.port} in ${config.env} mode`);
