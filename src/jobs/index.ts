@@ -49,7 +49,7 @@ const initJobs = () => {
         for (const user of adminsManagers) {
           try {
             await emailService.sendLowStockAlert(user.email, products);
-          } catch (err) {
+          } catch {
             logger.warn(`Failed to send low stock alert to ${user.email}`);
           }
         }

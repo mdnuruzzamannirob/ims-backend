@@ -1,5 +1,4 @@
 import { Expense } from "./expense.model";
-import { User } from "../user/user.model";
 import { BadRequestError, NotFoundError } from "../../core/errors";
 
 const create = async (data: any, userId: string) => {
@@ -86,8 +85,6 @@ const approve = async (id: string, userId: string) => {
   if (expense.status !== "pending") {
     throw new BadRequestError("Only pending expenses can be approved");
   }
-
-  const approver = await User.findById(userId).select("name").lean();
 
   expense.status = "approved";
   expense.approvedBy = userId as any;

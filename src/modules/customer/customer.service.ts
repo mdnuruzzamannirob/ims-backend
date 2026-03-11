@@ -1,7 +1,6 @@
 import { Customer } from "./customer.model";
 import { Sale } from "../sale/sale.model";
 import { NotFoundError } from "../../core/errors";
-import { Types } from "mongoose";
 
 const create = async (data: any, userId: string) => {
   const customer = await Customer.create({ ...data, createdBy: userId });

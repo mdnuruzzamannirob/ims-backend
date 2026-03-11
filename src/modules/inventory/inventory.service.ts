@@ -8,13 +8,11 @@ const getAll = async (query: {
   page?: string;
   limit?: string;
 }) => {
-  const filter: Record<string, unknown> = {};
-
   const page = parseInt(query.page || "1", 10);
   const limit = parseInt(query.limit || "20", 10);
   const skip = (page - 1) * limit;
 
-  let pipeline: any[] = [
+  const pipeline: any[] = [
     {
       $lookup: {
         from: "products",

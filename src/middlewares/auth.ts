@@ -15,11 +15,10 @@ export interface JwtPayload {
   role: string;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
+// Extend Express.Request with user property using module augmentation
+declare module "express" {
+  interface Request {
+    user?: JwtPayload;
   }
 }
 

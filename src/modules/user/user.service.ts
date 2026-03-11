@@ -67,7 +67,7 @@ const register = async (data: {
   // Send verification email
   try {
     await emailService.sendVerificationEmail(user.email, verificationToken);
-  } catch (err) {
+  } catch {
     logger.warn("Failed to send verification email", { email: user.email });
   }
 
@@ -217,7 +217,7 @@ const forgotPassword = async (email: string) => {
 
   try {
     await emailService.sendPasswordResetEmail(user.email, resetToken);
-  } catch (err) {
+  } catch {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
