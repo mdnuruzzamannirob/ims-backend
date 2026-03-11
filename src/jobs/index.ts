@@ -72,35 +72,26 @@ const initJobs = () => {
       const now = new Date();
 
       // Clean expired password reset tokens
-      await User.updateMany(
-        { passwordResetExpires: { $lt: now } } as any,
-        {
-          $unset: {
-            passwordResetToken: 1,
-            passwordResetExpires: 1,
-          },
+      await User.updateMany({ passwordResetExpires: { $lt: now } } as any, {
+        $unset: {
+          passwordResetToken: 1,
+          passwordResetExpires: 1,
         },
-      );
+      });
 
       // Clean expired email verification tokens
-      await User.updateMany(
-        { emailVerificationExpires: { $lt: now } } as any,
-        {
-          $unset: {
-            emailVerificationToken: 1,
-            emailVerificationExpires: 1,
-          },
+      await User.updateMany({ emailVerificationExpires: { $lt: now } } as any, {
+        $unset: {
+          emailVerificationToken: 1,
+          emailVerificationExpires: 1,
         },
-      );
+      });
 
       // Unlock locked accounts whose lock time has passed
-      await User.updateMany(
-        { lockUntil: { $lt: now } } as any,
-        {
-          $set: { loginAttempts: 0 },
-          $unset: { lockUntil: 1 },
-        },
-      );
+      await User.updateMany({ lockUntil: { $lt: now } } as any, {
+        $set: { loginAttempts: 0 },
+        $unset: { lockUntil: 1 },
+      });
 
       logger.info("[CRON] Token cleanup completed");
     } catch (error) {

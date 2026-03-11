@@ -27,7 +27,11 @@ router.post(
   paymentController.createStripePaymentIntent,
 );
 router.get("/", paymentController.getAll);
-router.get("/summary", requirePermission("payment", "manage"), paymentController.getSummary);
+router.get(
+  "/summary",
+  requirePermission("payment", "manage"),
+  paymentController.getSummary,
+);
 router.get("/:id", paymentController.getById);
 router.patch(
   "/:id/status",

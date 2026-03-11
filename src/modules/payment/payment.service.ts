@@ -65,12 +65,8 @@ const createStripePaymentIntent = async (
   };
 };
 
-const handleStripeWebhook = async (
-  payload: Buffer,
-  signature: string,
-) => {
-  if (!stripe)
-    throw new BadRequestError("Stripe is not configured");
+const handleStripeWebhook = async (payload: Buffer, signature: string) => {
+  if (!stripe) throw new BadRequestError("Stripe is not configured");
 
   let event: Stripe.Event;
   try {
@@ -86,32 +82,27 @@ const handleStripeWebhook = async (
   switch (event.type) {
     case "payment_intent.succeeded": {
       const pi = event.data.object as Stripe.PaymentIntent;
-      await Payment.findOneAndUpdate(
-        { stripePaymentIntentId: pi.id } as any,
-        {
-          status: "completed",
-          paidAt: new Date(),
-          stripeChargeId: pi.latest_charge as string,
-        },
-      );
+      await Payment.findOneAndUpdate({ stripePaymentIntentId: pi.id } as any, {
+        status: "completed",
+        paidAt: new Date(),
+        stripeChargeId: pi.latest_charge as string,
+      });
       logger.info(`Stripe payment succeeded: ${pi.id}`);
       break;
     }
     case "payment_intent.payment_failed": {
       const pi = event.data.object as Stripe.PaymentIntent;
-      await Payment.findOneAndUpdate(
-        { stripePaymentIntentId: pi.id } as any,
-        { status: "failed" },
-      );
+      await Payment.findOneAndUpdate({ stripePaymentIntentId: pi.id } as any, {
+        status: "failed",
+      });
       logger.warn(`Stripe payment failed: ${pi.id}`);
       break;
     }
     case "charge.refunded": {
       const charge = event.data.object as Stripe.Charge;
-      await Payment.findOneAndUpdate(
-        { stripeChargeId: charge.id } as any,
-        { status: "refunded" },
-      );
+      await Payment.findOneAndUpdate({ stripeChargeId: charge.id } as any, {
+        status: "refunded",
+      });
       logger.info(`Stripe refund processed: ${charge.id}`);
       break;
     }
@@ -137,8 +128,7 @@ const getAll = async (query: {
     filter.createdAt = {};
     if (query.startDate)
       (filter.createdAt as any).$gte = new Date(query.startDate);
-    if (query.endDate)
-      (filter.createdAt as any).$lte = new Date(query.endDate);
+    if (query.endDate) (filter.createdAt as any).$lte = new Date(query.endDate);
   }
 
   const page = parseInt(query.page || "1", 10);

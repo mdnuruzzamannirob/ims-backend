@@ -34,10 +34,7 @@ const sendMail = async (options: {
   }
 };
 
-const sendVerificationEmail = async (
-  email: string,
-  token: string,
-) => {
+const sendVerificationEmail = async (email: string, token: string) => {
   const verifyUrl = `${config.frontendUrl}/verify-email/${token}`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -53,10 +50,7 @@ const sendVerificationEmail = async (
   return sendMail({ to: email, subject: "Verify your email - IMS", html });
 };
 
-const sendPasswordResetEmail = async (
-  email: string,
-  token: string,
-) => {
+const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetUrl = `${config.frontendUrl}/reset-password/${token}`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -78,7 +72,12 @@ const sendPasswordResetEmail = async (
 
 const sendLowStockAlert = async (
   email: string,
-  products: Array<{ name: string; sku: string; quantity: number; reorderLevel: number }>,
+  products: Array<{
+    name: string;
+    sku: string;
+    quantity: number;
+    reorderLevel: number;
+  }>,
 ) => {
   const rows = products
     .map(
@@ -114,7 +113,13 @@ const sendLowStockAlert = async (
 
 const sendPaymentReceipt = async (
   email: string,
-  data: { receiptNumber: string; amount: number; currency: string; paidAt: string; description: string },
+  data: {
+    receiptNumber: string;
+    amount: number;
+    currency: string;
+    paidAt: string;
+    description: string;
+  },
 ) => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

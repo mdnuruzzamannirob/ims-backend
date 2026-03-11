@@ -60,28 +60,60 @@ const getDashboardStats = async () => {
     ]),
     // Today's sales
     Sale.aggregate([
-      { $match: { createdAt: { $gte: today, $lt: tomorrow }, status: "completed" } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+      {
+        $match: {
+          createdAt: { $gte: today, $lt: tomorrow },
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalAmount" },
+          count: { $sum: 1 },
+        },
+      },
     ]),
     // Monthly sales
     Sale.aggregate([
       { $match: { createdAt: { $gte: monthStart }, status: "completed" } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalAmount" },
+          count: { $sum: 1 },
+        },
+      },
     ]),
     // Today's purchases
     Purchase.aggregate([
       { $match: { createdAt: { $gte: today, $lt: tomorrow } } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalAmount" },
+          count: { $sum: 1 },
+        },
+      },
     ]),
     // Monthly purchases
     Purchase.aggregate([
       { $match: { createdAt: { $gte: monthStart } } },
-      { $group: { _id: null, total: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$totalAmount" },
+          count: { $sum: 1 },
+        },
+      },
     ]),
     // Recent sales (last 5)
     Sale.find().sort({ createdAt: -1 }).limit(5).populate("createdBy", "name"),
     // Recent purchases (last 5)
-    Purchase.find().sort({ createdAt: -1 }).limit(5).populate("supplier", "name"),
+    Purchase.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("supplier", "name"),
   ]);
 
   return {
@@ -89,10 +121,22 @@ const getDashboardStats = async () => {
     totalCustomers,
     totalUsers,
     lowStockCount: lowStockCount[0]?.count || 0,
-    todaySales: { total: todaySales[0]?.total || 0, count: todaySales[0]?.count || 0 },
-    monthlySales: { total: monthlySales[0]?.total || 0, count: monthlySales[0]?.count || 0 },
-    todayPurchases: { total: todayPurchases[0]?.total || 0, count: todayPurchases[0]?.count || 0 },
-    monthlyPurchases: { total: monthlyPurchases[0]?.total || 0, count: monthlyPurchases[0]?.count || 0 },
+    todaySales: {
+      total: todaySales[0]?.total || 0,
+      count: todaySales[0]?.count || 0,
+    },
+    monthlySales: {
+      total: monthlySales[0]?.total || 0,
+      count: monthlySales[0]?.count || 0,
+    },
+    todayPurchases: {
+      total: todayPurchases[0]?.total || 0,
+      count: todayPurchases[0]?.count || 0,
+    },
+    monthlyPurchases: {
+      total: monthlyPurchases[0]?.total || 0,
+      count: monthlyPurchases[0]?.count || 0,
+    },
     recentSales,
     recentPurchases,
   };
@@ -130,7 +174,13 @@ const getSalesReport = async (query: any) => {
   ]);
 
   return {
-    summary: summary[0] || { totalSales: 0, totalOrders: 0, avgOrderValue: 0, maxOrder: 0, minOrder: 0 },
+    summary: summary[0] || {
+      totalSales: 0,
+      totalOrders: 0,
+      avgOrderValue: 0,
+      maxOrder: 0,
+      minOrder: 0,
+    },
     dailyBreakdown,
   };
 };
@@ -153,7 +203,13 @@ const getPurchaseReport = async (query: any) => {
     ]),
     Purchase.aggregate([
       { $match: matchStage },
-      { $group: { _id: "$status", count: { $sum: 1 }, total: { $sum: "$totalAmount" } } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          total: { $sum: "$totalAmount" },
+        },
+      },
     ]),
     Purchase.aggregate([
       { $match: matchStage },
@@ -193,7 +249,9 @@ const getInventoryReport = async () => {
           _id: null,
           totalItems: { $sum: 1 },
           totalQuantity: { $sum: "$quantity" },
-          totalValue: { $sum: { $multiply: ["$quantity", "$productInfo.price"] } },
+          totalValue: {
+            $sum: { $multiply: ["$quantity", "$productInfo.price"] },
+          },
         },
       },
     ]),
@@ -248,7 +306,9 @@ const getInventoryReport = async () => {
           _id: "$categoryInfo.name",
           totalItems: { $sum: 1 },
           totalQuantity: { $sum: "$quantity" },
-          totalValue: { $sum: { $multiply: ["$quantity", "$productInfo.price"] } },
+          totalValue: {
+            $sum: { $multiply: ["$quantity", "$productInfo.price"] },
+          },
         },
       },
       { $sort: { totalValue: -1 } },
@@ -293,7 +353,8 @@ const getProfitLossReport = async (query: any) => {
     revenue,
     costOfGoods,
     grossProfit,
-    grossProfitMargin: revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(2) : "0.00",
+    grossProfitMargin:
+      revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(2) : "0.00",
     paymentsReceived: paymentsReceived[0]?.total || 0,
     paymentsMade: paymentsMade[0]?.total || 0,
   };
