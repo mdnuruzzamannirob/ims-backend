@@ -3,6 +3,11 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import compression from "compression";
+import mongoSanitize from "express-mongo-sanitize";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
+import config from "./config";
 import routes from "./routes";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
@@ -10,19 +15,58 @@ import requestLogger from "./middlewares/requestLogger";
 
 const app = express();
 
-// Security & parsing
+// Security headers
 app.use(helmet());
-app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+
+// CORS — restrict to frontend URL in production
+app.use(
+  cors({
+    origin: config.env === "production" ? config.frontendUrl : true,
+    credentials: true,
+  }),
+);
+
+// Rate limiting on sensitive auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message:
+      "Too many requests from this IP, please try again after 15 minutes",
+  },
+});
+app.use("/api/v1/auth/login", authLimiter);
+app.use("/api/v1/auth/register", authLimiter);
+app.use("/api/v1/auth/forgot-password", authLimiter);
+
+// Body parsing — save raw body BEFORE json parsing (needed for Stripe webhook)
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
+
+// Response compression
+app.use(compression());
+
+// NoSQL injection sanitization (strips $ and . from user input keys)
+app.use(mongoSanitize());
+
+// HTTP Parameter Pollution protection
+app.use(hpp());
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// HTTP request logging (dev format for console)
+// HTTP request logging
 app.use(morgan("dev"));
-
-// Custom structured request logging
 app.use(requestLogger);
 
 // Health check

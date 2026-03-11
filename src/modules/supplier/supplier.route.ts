@@ -5,16 +5,38 @@ import {
   createSupplierSchema,
   updateSupplierSchema,
 } from "./supplier.validation";
-import auth from "../../middlewares/auth";
+import auth, { requirePermission } from "../../middlewares/auth";
 
 const router = Router();
 
 router.use(auth());
 
-router.post("/", validate(createSupplierSchema), supplierController.create);
-router.get("/", supplierController.getAll);
-router.get("/:id", supplierController.getById);
-router.patch("/:id", validate(updateSupplierSchema), supplierController.update);
-router.delete("/:id", auth("admin", "manager"), supplierController.remove);
+router.post(
+  "/",
+  requirePermission("supplier", "create"),
+  validate(createSupplierSchema),
+  supplierController.create,
+);
+router.get(
+  "/",
+  requirePermission("supplier", "read"),
+  supplierController.getAll,
+);
+router.get(
+  "/:id",
+  requirePermission("supplier", "read"),
+  supplierController.getById,
+);
+router.patch(
+  "/:id",
+  requirePermission("supplier", "update"),
+  validate(updateSupplierSchema),
+  supplierController.update,
+);
+router.delete(
+  "/:id",
+  requirePermission("supplier", "delete"),
+  supplierController.remove,
+);
 
 export const supplierRoutes = router;

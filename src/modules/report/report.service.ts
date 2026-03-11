@@ -5,6 +5,7 @@ import { Product } from "../product/product.model";
 import { Customer } from "../customer/customer.model";
 import { User } from "../user/user.model";
 import { Payment } from "../payment/payment.model";
+import { Expense } from "../expense/expense.model";
 
 const buildDateFilter = (query: any) => {
   const filter: any = {};
@@ -250,7 +251,7 @@ const getInventoryReport = async () => {
           totalItems: { $sum: 1 },
           totalQuantity: { $sum: "$quantity" },
           totalValue: {
-            $sum: { $multiply: ["$quantity", "$productInfo.price"] },
+            $sum: { $multiply: ["$quantity", "$productInfo.buyPrice"] },
           },
         },
       },
@@ -277,7 +278,7 @@ const getInventoryReport = async () => {
           sku: "$productInfo.sku",
           quantity: 1,
           reorderLevel: "$productInfo.reorderLevel",
-          price: "$productInfo.price",
+          price: "$productInfo.buyPrice",
         },
       },
       { $sort: { quantity: 1 } },
@@ -307,7 +308,7 @@ const getInventoryReport = async () => {
           totalItems: { $sum: 1 },
           totalQuantity: { $sum: "$quantity" },
           totalValue: {
-            $sum: { $multiply: ["$quantity", "$productInfo.price"] },
+            $sum: { $multiply: ["$quantity", "$productInfo.buyPrice"] },
           },
         },
       },
@@ -325,29 +326,40 @@ const getInventoryReport = async () => {
 const getProfitLossReport = async (query: any) => {
   const dateFilter = buildDateFilter(query);
 
-  const [salesTotal, purchasesTotal, paymentsReceived, paymentsMade] =
-    await Promise.all([
-      Sale.aggregate([
-        { $match: { status: "completed", ...dateFilter } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
-      ]),
-      Purchase.aggregate([
-        { $match: { status: "received", ...dateFilter } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
-      ]),
-      Payment.aggregate([
-        { $match: { type: "sale", status: "completed", ...dateFilter } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
-      Payment.aggregate([
-        { $match: { type: "purchase", status: "completed", ...dateFilter } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
-    ]);
+  const [
+    salesTotal,
+    purchasesTotal,
+    paymentsReceived,
+    paymentsMade,
+    expensesTotal,
+  ] = await Promise.all([
+    Sale.aggregate([
+      { $match: { status: "completed", ...dateFilter } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    ]),
+    Purchase.aggregate([
+      { $match: { status: "received", ...dateFilter } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    ]),
+    Payment.aggregate([
+      { $match: { type: "sale", status: "completed", ...dateFilter } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+    Payment.aggregate([
+      { $match: { type: "purchase", status: "completed", ...dateFilter } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+    Expense.aggregate([
+      { $match: { status: "approved", ...dateFilter } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+  ]);
 
   const revenue = salesTotal[0]?.total || 0;
   const costOfGoods = purchasesTotal[0]?.total || 0;
   const grossProfit = revenue - costOfGoods;
+  const totalExpenses = expensesTotal[0]?.total || 0;
+  const netProfit = grossProfit - totalExpenses;
 
   return {
     revenue,
@@ -355,6 +367,10 @@ const getProfitLossReport = async (query: any) => {
     grossProfit,
     grossProfitMargin:
       revenue > 0 ? ((grossProfit / revenue) * 100).toFixed(2) : "0.00",
+    totalExpenses,
+    netProfit,
+    netProfitMargin:
+      revenue > 0 ? ((netProfit / revenue) * 100).toFixed(2) : "0.00",
     paymentsReceived: paymentsReceived[0]?.total || 0,
     paymentsMade: paymentsMade[0]?.total || 0,
   };

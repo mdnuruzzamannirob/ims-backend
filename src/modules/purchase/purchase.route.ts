@@ -5,18 +5,31 @@ import {
   createPurchaseSchema,
   updatePurchaseStatusSchema,
 } from "./purchase.validation";
-import auth from "../../middlewares/auth";
+import auth, { requirePermission } from "../../middlewares/auth";
 
 const router = Router();
 
 router.use(auth());
 
-router.post("/", validate(createPurchaseSchema), purchaseController.create);
-router.get("/", purchaseController.getAll);
-router.get("/:id", purchaseController.getById);
+router.post(
+  "/",
+  requirePermission("purchase", "create"),
+  validate(createPurchaseSchema),
+  purchaseController.create,
+);
+router.get(
+  "/",
+  requirePermission("purchase", "read"),
+  purchaseController.getAll,
+);
+router.get(
+  "/:id",
+  requirePermission("purchase", "read"),
+  purchaseController.getById,
+);
 router.patch(
   "/:id/status",
-  auth("admin", "manager"),
+  requirePermission("purchase", "update"),
   validate(updatePurchaseStatusSchema),
   purchaseController.updateStatus,
 );

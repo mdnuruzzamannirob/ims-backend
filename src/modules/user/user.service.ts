@@ -10,6 +10,7 @@ import {
 } from "../../core/errors";
 import { emailService } from "../../core/email";
 import logger from "../../core/logger";
+import { auditService } from "../audit/audit.service";
 
 // --- Token helpers ---
 const generateAccessToken = (user: IUser): string => {
@@ -120,6 +121,15 @@ const login = async (data: { email: string; password: string }) => {
   user.lockUntil = undefined;
   const tokens = await generateTokenPair(user);
 
+  await auditService.createAuditLog({
+    userId: user._id.toString(),
+    userName: user.name,
+    userEmail: user.email,
+    action: "LOGIN",
+    resource: "User",
+    description: "User logged in successfully",
+  });
+
   return {
     user: {
       _id: user._id,
@@ -151,7 +161,21 @@ const refreshAccessToken = async (refreshToken: string) => {
 };
 
 const logout = async (userId: string) => {
-  await User.findByIdAndUpdate(userId, { refreshToken: undefined });
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { refreshToken: undefined },
+    { new: false },
+  );
+  if (user) {
+    await auditService.createAuditLog({
+      userId: user._id.toString(),
+      userName: user.name,
+      userEmail: user.email,
+      action: "LOGOUT",
+      resource: "User",
+      description: "User logged out",
+    });
+  }
 };
 
 const verifyEmail = async (token: string) => {

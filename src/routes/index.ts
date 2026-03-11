@@ -10,6 +10,8 @@ import { uploadRoutes } from "../modules/upload/upload.route";
 import { paymentRoutes } from "../modules/payment/payment.route";
 import { customerRoutes } from "../modules/customer/customer.route";
 import { reportRoutes } from "../modules/report/report.route";
+import { expenseRoutes } from "../modules/expense/expense.route";
+import { auditRoutes } from "../modules/audit/audit.route";
 
 const router = Router();
 
@@ -24,5 +26,7 @@ router.use("/uploads", uploadRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/customers", customerRoutes);
 router.use("/reports", reportRoutes);
+router.use("/expenses", expenseRoutes);
+router.use("/audit-logs", auditRoutes);
 
 export default router;

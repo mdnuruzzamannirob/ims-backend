@@ -10,6 +10,7 @@ export interface ISaleItem {
 export interface ISale extends Document {
   items: ISaleItem[];
   totalAmount: number;
+  customer?: Types.ObjectId;
   customerName?: string;
   customerPhone?: string;
   status: "completed" | "returned";
@@ -42,6 +43,10 @@ const saleSchema = new Schema<ISale>(
       type: Number,
       required: true,
       min: 0,
+    },
+    customer: {
+      type: Schema.Types.ObjectId,
+      ref: "Customer",
     },
     customerName: {
       type: String,

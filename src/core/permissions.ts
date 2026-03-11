@@ -11,7 +11,9 @@ export type Resource =
   | "payment"
   | "report"
   | "dashboard"
-  | "customer";
+  | "customer"
+  | "expense"
+  | "audit";
 
 export type Action = "create" | "read" | "update" | "delete" | "manage";
 
@@ -30,6 +32,8 @@ const permissions: PermissionMap = {
     report: ["read", "manage"],
     dashboard: ["read"],
     customer: ["create", "read", "update", "delete"],
+    expense: ["create", "read", "update", "delete", "manage"],
+    audit: ["read", "manage"],
   },
   manager: {
     user: ["read"],
@@ -43,6 +47,8 @@ const permissions: PermissionMap = {
     report: ["read"],
     dashboard: ["read"],
     customer: ["create", "read", "update"],
+    expense: ["create", "read", "update", "manage"],
+    audit: ["read"],
   },
   staff: {
     category: ["read"],
@@ -54,6 +60,7 @@ const permissions: PermissionMap = {
     payment: ["read"],
     dashboard: ["read"],
     customer: ["read", "create"],
+    expense: ["create", "read"],
   },
 };
 

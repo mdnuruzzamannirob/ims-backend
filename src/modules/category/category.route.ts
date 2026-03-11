@@ -5,16 +5,38 @@ import {
   createCategorySchema,
   updateCategorySchema,
 } from "./category.validation";
-import auth from "../../middlewares/auth";
+import auth, { requirePermission } from "../../middlewares/auth";
 
 const router = Router();
 
 router.use(auth());
 
-router.post("/", validate(createCategorySchema), categoryController.create);
-router.get("/", categoryController.getAll);
-router.get("/:id", categoryController.getById);
-router.patch("/:id", validate(updateCategorySchema), categoryController.update);
-router.delete("/:id", auth("admin", "manager"), categoryController.remove);
+router.post(
+  "/",
+  requirePermission("category", "create"),
+  validate(createCategorySchema),
+  categoryController.create,
+);
+router.get(
+  "/",
+  requirePermission("category", "read"),
+  categoryController.getAll,
+);
+router.get(
+  "/:id",
+  requirePermission("category", "read"),
+  categoryController.getById,
+);
+router.patch(
+  "/:id",
+  requirePermission("category", "update"),
+  validate(updateCategorySchema),
+  categoryController.update,
+);
+router.delete(
+  "/:id",
+  requirePermission("category", "delete"),
+  categoryController.remove,
+);
 
 export const categoryRoutes = router;

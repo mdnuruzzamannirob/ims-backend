@@ -28,10 +28,12 @@ const createStripePaymentIntent = catchAsync(
 
 const stripeWebhook = catchAsync(async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
-  const result = await paymentService.handleStripeWebhook(
-    req.body as Buffer,
-    sig,
-  );
+  const rawBody = (req as any).rawBody as Buffer | undefined;
+  if (!rawBody) {
+    res.status(400).json({ success: false, message: "Raw body unavailable" });
+    return;
+  }
+  const result = await paymentService.handleStripeWebhook(rawBody, sig);
   sendResponse(res, { message: "Webhook received", data: result });
 });
 

@@ -1,4 +1,4 @@
-import { Router, raw } from "express";
+import { Router } from "express";
 import { paymentController } from "./payment.controller";
 import validate from "../../middlewares/validate";
 import {
@@ -10,12 +10,8 @@ import auth, { requirePermission } from "../../middlewares/auth";
 
 const router = Router();
 
-// Stripe webhook (needs raw body — no auth)
-router.post(
-  "/stripe/webhook",
-  raw({ type: "application/json" }),
-  paymentController.stripeWebhook,
-);
+// Stripe webhook — raw body is captured by express.json verify in app.ts
+router.post("/stripe/webhook", paymentController.stripeWebhook);
 
 // Protected routes
 router.use(auth());
